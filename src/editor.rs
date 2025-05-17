@@ -32,7 +32,7 @@ impl Editor {
         }
         Ok(())
     }
-    
+
     fn refresh_screen(&self) -> Result<(), Error> {
         Terminal::hide_cursor()?;
         if self.should_quit {
@@ -40,6 +40,7 @@ impl Editor {
             Terminal::print("Exiting.\r\n")?;
         } else {
             Self::draw_rows()?;
+            Self::draw_welcome_message()?;
             Terminal::move_cursor_to(
                 Position {x:0,y:0}
             )?;
@@ -59,6 +60,16 @@ impl Editor {
                 Terminal::print("\r\n")?;
             }
         }
+        Ok(())
+    }
+
+    fn draw_welcome_message() -> Result<(), Error> {
+        let TerminalSize { width, height } = Terminal::size()?;
+        let message_row = height * 2 / 3;
+        let message_col =  width / 2;
+        Terminal::move_cursor_to(Position {x: message_col, y: message_row})?;
+        let welcome_message = format!("{}: v{}", env!("CARGO_PKG_NAME"),  env!("CARGO_PKG_VERSION"));
+        Terminal::print(&welcome_message)?;
         Ok(())
     }
 
