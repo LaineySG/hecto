@@ -1,4 +1,4 @@
-#![warn(clippy::all, clippy::pedantic)]
+#![warn(clippy::all, clippy::pedantic, clippy::print_stdout)]
 mod editor; // Brings editor into scope. Looks for editor.rs or editor/mod.rs
 
 use editor::Editor;

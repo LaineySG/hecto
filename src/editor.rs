@@ -1,8 +1,8 @@
 mod terminal; // Rust looks for terminal/mod.rs or terminal.rs in the dir named after the current module, aka editor/terminal.rs
-use terminal::Terminal;
+use terminal::{Terminal, TerminalSize, Position};
 
-use std::io::{stdout, Error, Write};
-use crossterm::{cursor::{Hide, Show}, event::{read, Event::{self, Key}, KeyCode::Char, KeyEvent, KeyModifiers}, style::Print, queue};
+use std::io::{Error};
+use crossterm::{event::{read, Event::{self, Key}, KeyCode::Char, KeyEvent, KeyModifiers}};
 
 pub struct Editor {
     should_quit: bool,
@@ -32,30 +32,31 @@ impl Editor {
         }
         Ok(())
     }
+    
     fn refresh_screen(&self) -> Result<(), Error> {
-        queue!(stdout(), Hide)?;
+        Terminal::hide_cursor()?;
         if self.should_quit {
             Terminal::clear_screen()?;
-            queue!(stdout(), Print("Exiting.\r\n"))?;
-            stdout().flush()?;
+            Terminal::print("Exiting.\r\n")?;
         } else {
             Self::draw_rows()?;
             Terminal::move_cursor_to(
-                terminal::Coords {x:0,y:0}
+                Position {x:0,y:0}
             )?;
         }
-        queue!(stdout(), Show)?;
+        Terminal::show_cursor()?;
+        Terminal::execute()?;
         Ok(())
     }
 
     fn draw_rows() -> Result<(), Error> {
-        let height = Terminal::size()?.height;
+        let TerminalSize{height, ..} = Terminal::size()?;
+
         for current_row in 0..height {
-            queue!(stdout(), Print("~"))?;
-            stdout().flush()?;
+            Terminal::clear_line()?;
+            Terminal::print("~")?;
             if current_row + 1 < height {
-            queue!(stdout(), Print("\r\n"))?;
-            stdout().flush()?;
+                Terminal::print("\r\n")?;
             }
         }
         Ok(())
