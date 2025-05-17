@@ -60,7 +60,7 @@ impl Editor {
 
         for current_row in 0..height {
             Self::draw_empty_row()?;
-            if current_row + 1 < height {
+            if current_row.saturating_add(1) < height {
                 Terminal::print("\r\n")?;
             }
         }
@@ -84,10 +84,10 @@ impl Editor {
         let len = welcome_message.len() as usize;
 
         let y_cursor_position = height * 2 / 3;
-        let x_cursor_position = (width / 2) - (len / 2); // half the width, then go back half the message length
+        let x_cursor_position = (width / 2).saturating_sub(len / 2); // half the width, then go back half the message length
         Terminal::move_cursor_to(Position {
-            x: x_cursor_position as u16,
-            y: y_cursor_position as u16,
+            x: x_cursor_position,
+            y: y_cursor_position,
         })?;
 
         Terminal::print(&welcome_message)?;
