@@ -1,18 +1,25 @@
 use std::io::{stdout, Error};
 use crossterm::cursor::MoveTo;
-use crossterm::execute;
+use crossterm::queue;
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode, size, Clear, ClearType};
 
-pub struct Terminal {
-    should_quit: bool
+pub struct TerminalSize {
+    pub width: u16,
+    pub height: u16,
 }
+pub struct Coords {
+    pub x: u16,
+    pub y: u16,
+}
+
+pub struct Terminal;
 
 impl Terminal {
 
     pub fn initialize() -> Result<(), Error> {
         enable_raw_mode()?;
         Self::clear_screen()?;
-        Self::move_cursor_to(0,0)?;
+        Self::move_cursor_to(Coords {x:0,y:0})?;
         Ok(())
     }
 
@@ -22,16 +29,18 @@ impl Terminal {
     }
 
     pub fn clear_screen() -> Result<(), Error> {
-        execute!(stdout(), Clear(ClearType::All))
+        queue!(stdout(), Clear(ClearType::All)) // FromCursorDown works, kind of
     }
 
-    pub fn move_cursor_to(x: u16, y: u16) -> Result<(), Error>{
-        execute!(stdout(), MoveTo(x,y))?;
+    pub fn move_cursor_to(c: Coords) -> Result<(), Error>{
+        queue!(stdout(), MoveTo(c.x,c.y))?;
         Ok(())
     }
 
-    pub fn size() -> Result<(u16,u16), Error> {
-        size()
+    pub fn size() -> Result<TerminalSize, Error> {
+        let (width, height) = size()?;
+        let tsize = TerminalSize { width, height };
+        Ok(tsize)
     }
     
 }
