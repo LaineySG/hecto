@@ -1,7 +1,7 @@
 use std::io::{stdout, Error};
 
 use crossterm::event::{read, Event, Event::Key, KeyCode::Char, KeyEvent, KeyModifiers};
-use crossterm::execute;
+use crossterm::{execute};
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode, Clear, ClearType};
 
 pub struct Editor {
@@ -22,7 +22,17 @@ impl Editor {
 
     fn initialize() -> Result<(), Error> {
         enable_raw_mode()?;
-        Self::clear_screen()
+        Self::clear_screen()?;
+        Self::draw_rows()
+    }
+    
+    fn draw_rows() -> Result<(), Error> {
+        let (_, height) = crossterm::terminal::size()?;
+        for row in 0..height {
+            crossterm::cursor::MoveTo(0,row);
+            println!("~");
+        }
+        Ok(())
     }
 
     fn terminate() -> Result<(), Error> {
