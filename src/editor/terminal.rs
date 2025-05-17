@@ -5,15 +5,15 @@ use crossterm::terminal::{disable_raw_mode, enable_raw_mode, size, Clear, ClearT
 use crossterm::{queue, Command};
 use std::io::{stdout, Error, Write};
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug, Default)]
 pub struct TerminalSize {
-    pub width: usize,
-    pub height: usize,
+    pub width: isize,
+    pub height: isize,
 }
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug, Default)]
 pub struct Position {
-    pub x: usize,
-    pub y: usize,
+    pub col: isize,
+    pub row: isize,
 }
 
 /// Represents the Terminal.
@@ -21,14 +21,14 @@ pub struct Position {
 /// Regardless of the actual size of the Terminal, this representation
 /// only spans over at most `usize::MAX` or `u16::size` rows/columns, whichever is smaller.
 /// Each size returned truncates to min(`usize::MAX`, `u16::MAX`)
-/// And should you attempt to set the cursor out of these bounds, it will also be truncated
+/// And should you attempt to set the caret out of these bounds, it will also be truncated
 pub struct Terminal;
 
 impl Terminal {
+
     pub fn initialize() -> Result<(), Error> {
         enable_raw_mode()?;
         Self::clear_screen()?;
-        Self::move_cursor_to(Position { x: 0, y: 0 })?;
         Self::execute()
     }
 
@@ -45,16 +45,19 @@ impl Terminal {
     pub fn clear_line() -> Result<(), Error> {
         Self::queue_command(Clear(ClearType::CurrentLine))
     }
-
-    pub fn move_cursor_to(pos: Position) -> Result<(), Error> {
-        Self::queue_command(MoveTo(pos.x.try_into().unwrap(), pos.y.try_into().unwrap()))
+    
+    /// Moves the caret to the given Position.
+    /// # Arguments
+    /// * `Position` - the  `Position`to move the caret to. Will be truncated to `u16::MAX` if bigger.
+    pub fn move_caret_to(position: Position) -> Result<(), Error> {
+        Self::queue_command(MoveTo(position.col as u16, position.row as u16))
     }
 
-    pub fn hide_cursor() -> Result<(), Error> {
+    pub fn hide_caret() -> Result<(), Error> {
         Self::queue_command(Hide)
     }
 
-    pub fn show_cursor() -> Result<(), Error> {
+    pub fn show_caret() -> Result<(), Error> {
         Self::queue_command(Show)
     }
 
