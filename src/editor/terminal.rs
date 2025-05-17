@@ -1,6 +1,7 @@
 use std::io::{stdout, Error, Write};
 use crossterm::cursor::{MoveTo, Hide, Show};
-use crossterm::queue;
+use crossterm::{queue, Command};
+use core::fmt::Display;
 use crossterm::style::Print;
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode, size, Clear, ClearType};
 
@@ -33,27 +34,27 @@ impl Terminal {
     }
 
     pub fn clear_screen() -> Result<(), Error> {
-        queue!(stdout(), Clear(ClearType::All))
+        Self::queue_command(Clear(ClearType::All))
     }
     
     pub fn clear_line() -> Result<(), Error> {
-        queue!(stdout(), Clear(ClearType::CurrentLine))
+        Self::queue_command(Clear(ClearType::CurrentLine))
     }
 
     pub fn move_cursor_to(pos: Position) -> Result<(), Error>{
-        queue!(stdout(), MoveTo(pos.x,pos.y))
+        Self::queue_command(MoveTo(pos.x,pos.y))
     }
 
     pub fn hide_cursor() -> Result<(), Error> {
-        queue!(stdout(), Hide)
+        Self::queue_command(Hide)
     }
 
     pub fn show_cursor() -> Result<(), Error>{
-        queue!(stdout(), Show)
+        Self::queue_command(Show)
     }
 
-    pub fn print(string: &str) -> Result<(), Error>{
-        queue!(stdout(), Print(string))
+    pub fn print<T: Display>(string: T) -> Result<(), Error>{ // identical to string: impl Display
+        Self::queue_command(Print(string))
     }
 
     pub fn size() -> Result<TerminalSize, Error> {
@@ -64,6 +65,10 @@ impl Terminal {
     /// Ensure all pending writes are gone.
     pub fn execute() -> Result<(),Error> {
         stdout().flush()
+    }
+
+    pub fn queue_command<T: Command>(command: T) -> Result<(), Error> {
+        queue!(stdout(), command)
     }
     
 }

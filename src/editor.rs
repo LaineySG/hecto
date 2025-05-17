@@ -4,6 +4,11 @@ use terminal::{Terminal, TerminalSize, Position};
 use std::io::{Error};
 use crossterm::{event::{read, Event::{self, Key}, KeyCode::Char, KeyEvent, KeyModifiers}};
 
+
+
+const NAME: &str = env!("CARGO_PKG_NAME");
+const VERSION: &str = env!("CARGO_PKG_VERSION");
+
 pub struct Editor {
     should_quit: bool,
 }
@@ -54,8 +59,7 @@ impl Editor {
         let TerminalSize{height, ..} = Terminal::size()?;
 
         for current_row in 0..height {
-            Terminal::clear_line()?;
-            Terminal::print("~")?;
+            Self::draw_empty_row()?;
             if current_row + 1 < height {
                 Terminal::print("\r\n")?;
             }
@@ -63,12 +67,23 @@ impl Editor {
         Ok(())
     }
 
-    fn draw_welcome_message() -> Result<(), Error> {
-        let TerminalSize { width, height } = Terminal::size()?;
-        let message_row = height * 2 / 3;
-        let message_col =  width / 2;
-        Terminal::move_cursor_to(Position {x: message_col, y: message_row})?;
-        let welcome_message = format!("{}: v{}", env!("CARGO_PKG_NAME"),  env!("CARGO_PKG_VERSION"));
+    fn draw_empty_row() -> Result<(), Error> {
+            Terminal::clear_line()?;
+            Terminal::print("~")?;
+            Ok(())
+    }
+
+    fn draw_welcome_message() -> Result<(), Error> {        
+        let (width, height) = (Terminal::size()?.width as usize, Terminal::size()?.height as usize);
+
+        let mut welcome_message = format!("{}: v{}", NAME, VERSION);
+        welcome_message.truncate(width);
+        let len = welcome_message.len() as usize;
+
+        let y_cursor_position = height * 2 / 3;
+        let x_cursor_position =  (width / 2) - (len / 2); // half the width, then go back half the message length
+        Terminal::move_cursor_to(Position {x: x_cursor_position as u16, y: y_cursor_position as u16})?;
+
         Terminal::print(&welcome_message)?;
         Ok(())
     }
